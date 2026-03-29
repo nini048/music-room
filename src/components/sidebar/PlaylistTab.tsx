@@ -1,7 +1,7 @@
 'use client';
 
 import { usePlayerStore, Song } from '@/store/usePlayerStore';
-import { Play, Plus, Clock } from 'lucide-react';
+import { Play, Plus, History } from 'lucide-react';
 import styles from './Tabs.module.css';
 
 export default function PlaylistTab() {
@@ -10,24 +10,23 @@ export default function PlaylistTab() {
   if (history.length === 0) {
     return (
       <div className={styles.empty}>
-        <Clock size={48} className={styles.mutedIcon} />
-        <p>Lịch sử đang trống</p>
+        <History size={40} className="mb-4 opacity-20" />
+        <p>Lịch sử nghe đang trống</p>
       </div>
     );
   }
 
   return (
-    <div className={styles.playlistList}>
-      <h3 className={styles.sectionTitle}>Gần đây</h3>
-      {history.slice().reverse().map((song, index) => (
+    <div className={styles.historyList}>
+      {history.map((song, index) => (
         <div key={`${song.id}-${index}`} className={styles.songItem}>
-          <div className={styles.coverWrapper}>
+          <div className={styles.coverWrapper} onClick={() => setCurrentSong(song)}>
             <img src={song.thumbnail || song.cover} alt={song.title} className={styles.cover} />
-            <div className={styles.playOverlay} onClick={() => setCurrentSong(song)}>
-              <Play size={14} fill="white" />
+            <div className={styles.playOverlay}>
+              <Play size={16} fill="white" />
             </div>
           </div>
-          <div className={styles.info}>
+          <div className={styles.info} onClick={() => setCurrentSong(song)}>
             <h4 className={styles.title}>{song.title}</h4>
             <p className={styles.artist}>{song.artist}</p>
           </div>

@@ -49,41 +49,37 @@ export default function SearchBar() {
   };
 
   return (
-    <div className={styles.wrapper} ref={wrapperRef}>
-      <form onSubmit={handleSearch} className={styles.searchForm}>
-        <div className={styles.inputWrapper}>
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Tìm bài hát, nghệ sĩ..."
-            className={styles.searchInput}
-          />
-          <button type="submit" className={styles.searchIconBtn}>
-            {isLoading ? <Loader2 className="animate-spin" size={18} /> : <Search size={18} />}
-          </button>
+    <div className={styles.searchWrapper} ref={wrapperRef}>
+      <form onSubmit={handleSearch} className={styles.searchContainer}>
+        <div className={styles.searchIcon}>
+          {isLoading ? <Loader2 className={styles.loader} size={18} /> : <Search size={18} />}
         </div>
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Tìm bài hát, nghệ sĩ hoặc dán link YouTube..."
+          className={styles.input}
+          onFocus={() => { if (results.length > 0) setShowResults(true); }}
+        />
+        <button type="submit" className="hidden" />
       </form>
 
       {showResults && (
-        <div className={`${styles.resultsDropdown} glass-heavy`}>
+        <div className={styles.resultsDropdown}>
           {results.length > 0 ? (
-            <div className={styles.resultsList}>
-              {results.map((song) => (
-                <div key={song.id} className={styles.resultItem} onClick={() => addItem(song)}>
-                  <img src={song.thumbnail || song.cover} alt={song.title} className={styles.resultThumb} />
-                  <div className={styles.resultInfo}>
-                    <p className={styles.resultTitle}>{song.title}</p>
-                    <p className={styles.resultArtist}>{song.artist} • {song.duration}</p>
-                  </div>
-                  <div className={styles.addIcon}>
-                    <Plus size={16} />
-                  </div>
+            results.map((song) => (
+              <div key={song.id} className={styles.resultItem} onClick={() => addItem(song)}>
+                <img src={song.thumbnail || song.cover} alt={song.title} className={styles.resultThumbnail} />
+                <div className={styles.resultInfo}>
+                  <p className={styles.resultTitle}>{song.title}</p>
+                  <p className={styles.resultArtist}>{song.artist} {song.duration && `• ${song.duration}`}</p>
                 </div>
-              ))}
-            </div>
+                <Plus size={16} className="text-zinc-500 hover:text-primary transition-colors" />
+              </div>
+            ))
           ) : (
-            <div className={styles.emptyResults}>
+            <div className="p-8 text-center text-zinc-500 text-sm">
               {isLoading ? <p>Đang tìm kiếm...</p> : <p>Không tìm thấy kết quả</p>}
             </div>
           )}
