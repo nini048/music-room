@@ -1,7 +1,8 @@
 'use client';
 
 import { usePlayerStore } from '@/store/usePlayerStore';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import styles from './ProgressBar.module.css';
 
 function parseDuration(duration: number | string): number {
   if (typeof duration === 'number') return duration;
@@ -50,12 +51,12 @@ export default function ProgressBar() {
   if (!currentSong) return null;
 
   return (
-    <div className="flex items-center gap-4 w-full px-2 group">
-      <span className="text-[11px] font-medium text-zinc-500 tabular-nums min-w-[32px]">
+    <div className={styles.progressWrapper}>
+      <span className={`${styles.timeText} ${styles.right}`}>
         {formatTime(currentTime)}
       </span>
       
-      <div className="relative flex-1 h-6 flex items-center">
+      <div className={styles.sliderContainer}>
         <input
           type="range"
           min="0"
@@ -67,19 +68,19 @@ export default function ProgressBar() {
           onChange={handleSeekChange}
           onMouseUp={handleSeekEnd}
           onTouchEnd={handleSeekEnd}
-          className="absolute inset-0 w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer focus:outline-none z-10"
+          className={styles.sliderInput}
           style={{
-            background: `linear-gradient(to right, #8b5cf6 ${displayProgress}%, rgba(255, 255, 255, 0.1) ${displayProgress}%)`,
+            background: `linear-gradient(to right, white ${displayProgress}%, rgba(255, 255, 255, 0.1) ${displayProgress}%)`,
           }}
         />
-        {/* Hover Thumb Placeholder */}
+        {/* Glow behind the thumb */}
         <div 
-          className="absolute h-3 w-3 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20"
-          style={{ left: `calc(${displayProgress}% - 6px)` }}
+          className={styles.sliderGlow}
+          style={{ left: `calc(${displayProgress}% - 8px)`, top: '50%' }}
         />
       </div>
 
-      <span className="text-[11px] font-medium text-zinc-500 tabular-nums min-w-[32px]">
+      <span className={styles.timeText}>
         {formatTime(durationInSeconds)}
       </span>
     </div>

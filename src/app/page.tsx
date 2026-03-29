@@ -3,29 +3,39 @@
 import Header from '@/components/layout/Header';
 import PlayerContainer from '@/components/player/PlayerContainer';
 import Sidebar from '@/components/sidebar/Sidebar';
-import FullscreenOverlay from '@/components/player/FullscreenOverlay';
+import { useColorStore } from '@/store/useColorStore';
 import styles from './page.module.css';
 
 export default function Home() {
-  return (
-    <main className="container relative overflow-hidden">
-      {/* Background Mesh */}
-      <div className="bg-mesh" />
+  const { dominantColor } = useColorStore();
 
-      <div className="main-grid">
-        {/* Left Column: Header, Player & Controls */}
-        <div className="lg:col-span-8 flex flex-col gap-6 min-h-0">
-          <Header />
+  return (
+    <main className={styles.main}>
+      
+      {/* Ultra Soft Ambient Backdrop */}
+      <div 
+        className={styles.ambientTopRight}
+        style={{ background: `radial-gradient(circle, ${dominantColor} 0%, transparent 70%)` }}
+      />
+      <div 
+        className={styles.ambientBottomLeft}
+        style={{ background: `radial-gradient(circle, ${dominantColor} 0%, transparent 70%)` }}
+      />
+
+      <Header />
+
+      <div className={styles.contentWrapper}>
+        
+        {/* Left Area (Player, Controls, Search) */}
+        <div className={styles.leftColumn}>
           <PlayerContainer />
         </div>
 
-        {/* Right Column: Queue/History/Playlists */}
-        <div className="lg:col-span-4 min-h-[500px] lg:min-h-0">
+        {/* Right Area (Sidebar / Queue) */}
+        <div className={styles.rightColumn}>
           <Sidebar />
         </div>
       </div>
-
-      <FullscreenOverlay />
     </main>
   );
 }

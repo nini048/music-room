@@ -1,72 +1,203 @@
 'use client';
 
+import { useState } from 'react';
 import { usePlayerStore, Song } from '@/store/usePlayerStore';
-import { Trash2, Plus, Play, MoreVertical } from 'lucide-react';
+import { usePlaylistStore } from '@/store/usePlaylistStore';
+import { Trash2, Play, SkipForward, ListMusic, MoreVertical, GripVertical, X } from 'lucide-react';
 import styles from './Tabs.module.css';
 
 export default function QueueTab() {
   const { queue, removeFromQueue, playNext, setCurrentSong, currentSong } = usePlayerStore();
+  const { playlists, addSongToPlaylist, createPlaylist } = usePlaylistStore();
+  const [menuSong, setMenuSong] = useState<Song | null>(null);
+  const [playlistPickSong, setPlaylistPickSong] = useState<Song | null>(null);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [newPlaylistName, setNewPlaylistName] = useState('');
+
+  const moveToFront = (song: Song) => {
+    playNext(song);
+    setMenuSong(null);
+  };
+
+  const handleDragStart = (idx: number) => setDragIdx(idx);
+  const handleDrop = (toIdx: number) => {
+    if (dragIdx === null || dragIdx === toIdx) return;
+    const newQueue = [...queue];
+    const [moved] = newQueue.splice(dragIdx, 1);
+    newQueue.splice(toIdx, 0, moved);
+    usePlayerStore.setState({ queue: newQueue });
+    setDragIdx(null);
+  };
 
   const emptyState = (
-    <div className={styles.empty}>
-      <Play size={40} className="mb-4 opacity-20" />
+    <div className={styles.emptyState}>
+      <Play size={32} className={styles.emptyIcon} />
       <p>Hàng chờ đang trống</p>
+      <p className={styles.emptySubtext}>Tìm kiếm và thêm bài hát</p>
     </div>
   );
 
   return (
-    <div className={styles.queueList}>
-      {/* Current Song Highlight */}
+    <div className={styles.container}>
+      {/* Current Song */}
       {currentSong && (
-        <div className={`${styles.songItem} ${styles.active}`} onClick={() => setCurrentSong(currentSong)}>
-           <div className={styles.coverWrapper}>
-             <img src={currentSong.thumbnail || currentSong.cover} alt={currentSong.title} className={styles.cover} />
-             <div className={styles.activeIndicator}>
-               <div className={styles.bar} style={{ animationDelay: '0s' }} />
-               <div className={styles.bar} style={{ animationDelay: '0.2s' }} />
-               <div className={styles.bar} style={{ animationDelay: '0.4s' }} />
-             </div>
-           </div>
-           <div className={styles.info}>
-             <h4 className={styles.title}>{currentSong.title}</h4>
-             <p className={styles.artist}>Đang phát</p>
-           </div>
+        <div style={{ marginBottom: '8px' }}>
+          <p className={styles.sectionTitle}>Đang phát</p>
+          <SongRow
+            song={currentSong}
+            isActive
+            onPlay={() => setCurrentSong(currentSong)}
+            onMenu={() => {}}
+          />
         </div>
       )}
 
-      {/* Queue Items */}
-      {queue.map((song) => (
-        <div key={song.id} className={styles.songItem}>
-          <div className={styles.coverWrapper} onClick={() => setCurrentSong(song)}>
-            <img src={song.thumbnail || song.cover} alt={song.title} className={styles.cover} />
-            <div className={styles.playOverlay}>
-              <Play size={16} fill="white" />
+      {/* Queue */}
+      {queue.length > 0 && (
+        <div>
+          <p className={styles.sectionTitle}>
+            Hàng chờ · {queue.length} bài
+          </p>
+          {queue.map((song, idx) => (
+            <div
+              key={song.id}
+              draggable
+              onDragStart={() => handleDragStart(idx)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => handleDrop(idx)}
+              style={{ transition: 'opacity 0.2s', opacity: dragIdx === idx ? 0.4 : 1 }}
+            >
+              <SongRow
+                song={song}
+                onPlay={() => { setCurrentSong(song); }}
+                onMenu={() => setMenuSong(menuSong?.id === song.id ? null : song)}
+                showDrag
+              />
+              {menuSong?.id === song.id && (
+                <ContextMenu
+                  onPlayNow={() => { setCurrentSong(song); setMenuSong(null); }}
+                  onMoveToFront={() => moveToFront(song)}
+                  onAddToPlaylist={() => { setPlaylistPickSong(song); setMenuSong(null); }}
+                  onRemove={() => { removeFromQueue(song.id); setMenuSong(null); }}
+                  onClose={() => setMenuSong(null)}
+                />
+              )}
             </div>
-          </div>
-          <div className={styles.info} onClick={() => setCurrentSong(song)}>
-            <h4 className={styles.title}>{song.title}</h4>
-            <p className={styles.artist}>{song.artist}</p>
-          </div>
-          <div className={styles.actions}>
-            <button 
-              className={styles.actionBtn} 
-              title="Phát kế tiếp"
-              onClick={() => playNext(song)}
-            >
-              <Plus size={16} />
-            </button>
-            <button 
-              className={`${styles.actionBtn} ${styles.danger}`} 
-              title="Xóa khỏi hàng chờ"
-              onClick={() => removeFromQueue(song.id)}
-            >
-              <Trash2 size={16} />
-            </button>
-          </div>
+          ))}
         </div>
-      ))}
+      )}
 
       {queue.length === 0 && !currentSong && emptyState}
+
+      {/* Playlist picker */}
+      {playlistPickSong && (
+        <PlaylistPicker
+          song={playlistPickSong}
+          playlists={playlists}
+          newName={newPlaylistName}
+          setNewName={setNewPlaylistName}
+          onAdd={(pid) => { addSongToPlaylist(pid, playlistPickSong); setPlaylistPickSong(null); }}
+          onCreate={(name) => { const pid = createPlaylist(name); addSongToPlaylist(pid, playlistPickSong); setPlaylistPickSong(null); setNewPlaylistName(''); }}
+          onClose={() => setPlaylistPickSong(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Song Row ─────────────────────────────────────────────────────────────────
+function SongRow({ song, isActive, onPlay, onMenu, showDrag }: {
+  song: Song; isActive?: boolean; onPlay: () => void; onMenu: () => void; showDrag?: boolean;
+}) {
+  return (
+    <div className={`${styles.songRow} ${isActive ? styles.songRowActive : ''}`}>
+      {showDrag && <GripVertical size={14} className={styles.dragHandle} />}
+      <div onClick={onPlay} className={styles.thumbContainer}>
+        <img src={song.thumbnail || song.cover} alt={song.title} className={styles.thumbImg} />
+        {isActive ? (
+          <div className={styles.thumbOverlayActive}>
+            <span className={styles.visualizerBox}>
+              {[0, 0.2, 0.4].map((d, i) => (
+                <span key={i} className={styles.visualizerBar} style={{ animationDelay: `${d}s`, height: '60%' }} />
+              ))}
+            </span>
+          </div>
+        ) : (
+          <div className={styles.thumbOverlayHover}>
+            <Play size={12} fill="white" color="white" />
+          </div>
+        )}
+      </div>
+      <div className={styles.songInfo} onClick={onPlay}>
+        <p className={`${styles.songTitle} ${isActive ? styles.songTitleActive : styles.songTitleInactive}`}>{song.title}</p>
+        <p className={styles.songArtist}>{song.artist}</p>
+      </div>
+      {!isActive && (
+        <button onClick={onMenu} className={styles.menuBtn}>
+          <MoreVertical size={14} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ─── Context Menu ─────────────────────────────────────────────────────────────
+function ContextMenu({ onPlayNow, onMoveToFront, onAddToPlaylist, onRemove, onClose }: {
+  onPlayNow: () => void; onMoveToFront: () => void; onAddToPlaylist: () => void; onRemove: () => void; onClose: () => void;
+}) {
+  return (
+    <div className={styles.contextMenuWrapper}>
+      <MenuBtn icon={<Play size={12} />} label="Phát ngay" onClick={onPlayNow} />
+      <MenuBtn icon={<SkipForward size={12} />} label="Đẩy lên đầu hàng chờ" onClick={onMoveToFront} />
+      <MenuBtn icon={<ListMusic size={12} />} label="Thêm vào playlist" onClick={onAddToPlaylist} />
+      <MenuBtn icon={<Trash2 size={12} />} label="Xóa khỏi hàng chờ" onClick={onRemove} danger />
+    </div>
+  );
+}
+
+function MenuBtn({ icon, label, onClick, danger }: { icon: React.ReactNode; label: string; onClick: () => void; danger?: boolean }) {
+  return (
+    <button onClick={onClick} className={`${styles.menuItemBtn} ${danger ? styles.menuItemDanger : ''}`}>
+      {icon}<span>{label}</span>
+    </button>
+  );
+}
+
+// ─── Playlist Picker ──────────────────────────────────────────────────────────
+import type { Playlist } from '@/store/usePlaylistStore';
+
+function PlaylistPicker({ song, playlists, newName, setNewName, onAdd, onCreate, onClose }: {
+  song: Song; playlists: Playlist[]; newName: string; setNewName: (v: string) => void;
+  onAdd: (id: string) => void; onCreate: (name: string) => void; onClose: () => void;
+}) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
+      <div style={{ position: 'relative', width: '100%', maxWidth: '320px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)', padding: '20px', background: 'rgba(12,12,16,0.98)', zIndex: 10 }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+          <h3 style={{ fontWeight: 600, color: 'white', fontSize: '14px' }}>Thêm Playlist</h3>
+          <button onClick={onClose} style={{ color: '#71717a' }}><X size={16} /></button>
+        </div>
+        <p style={{ fontSize: '11px', color: '#71717a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '12px' }}>{song.title}</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '12px', maxHeight: '160px', overflowY: 'auto' }}>
+          {playlists.map((pl) => (
+            <button key={pl.id} onClick={() => onAdd(pl.id)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', color: '#d4d4d8', fontSize: '12px', textAlign: 'left' }}>
+              <ListMusic size={12} style={{ flexShrink: 0, color: 'white' }} />
+              <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{pl.name}</span>
+              <span style={{ fontSize: '12px', color: '#71717a' }}>{pl.songs.length}</span>
+            </button>
+          ))}
+          {playlists.length === 0 && <p style={{ fontSize: '12px', color: '#71717a', textAlign: 'center', padding: '8px 0' }}>Chưa có playlist</p>}
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Tạo playlist mới..."
+            style={{ flex: 1, padding: '8px 12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', fontSize: '12px', color: 'white' }}
+            onKeyDown={(e) => { if (e.key === 'Enter' && newName.trim()) onCreate(newName.trim()); }} />
+          <button onClick={() => { if (newName.trim()) onCreate(newName.trim()); }} disabled={!newName.trim()}
+            style={{ padding: '8px 12px', borderRadius: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontSize: '12px', fontWeight: 500, opacity: !newName.trim() ? 0.4 : 1 }}>
+            Tạo
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
