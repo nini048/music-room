@@ -2,7 +2,7 @@
 
 import {
   Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Repeat1,
-  Volume2, VolumeX, Headphones, Moon
+  Volume2, VolumeX, Headphones, Moon, Maximize2
 } from 'lucide-react';
 import { usePlayerStore } from '@/store/usePlayerStore';
 import { useState, useRef, useEffect } from 'react';
@@ -16,6 +16,7 @@ export default function Controls() {
     repeatMode, setRepeatMode, currentSong,
     playerMode, togglePlayerMode,
     sleepTimer, setSleepTimer,
+    isFullscreen, toggleFullscreen,
   } = usePlayerStore();
 
   const [showSleep, setShowSleep] = useState(false);
@@ -121,6 +122,13 @@ export default function Controls() {
               </div>
             )}
           </div>
+
+          {/* Fullscreen Toggle */}
+          <button onClick={toggleFullscreen} disabled={!currentSong}
+            className={`${styles.utilityBtn} ${isFullscreen ? styles.utilityBtnActive : styles.utilityBtnInactive}`}
+            title="Fullscreen">
+            <Maximize2 size={18} />
+          </button>
 
           <div className={styles.volumeGroup}>
             <button onClick={() => setVolume(volume === 0 ? 0.5 : 0)} className={styles.volumeBtn}>

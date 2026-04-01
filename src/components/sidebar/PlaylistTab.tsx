@@ -7,7 +7,7 @@ import { Trash2, Play, Plus, ListMusic, ChevronLeft, GripVertical } from 'lucide
 import styles from './Tabs.module.css';
 
 export default function PlaylistTab() {
-  const { playlists, deletePlaylist, removeSongFromPlaylist, reorderPlaylist, playPlaylist } = usePlaylistStore();
+  const { playlists, deletePlaylist, removeSongFromPlaylist, reorderSong } = usePlaylistStore();
   const { setCurrentSong, addToQueue, currentSong } = usePlayerStore();
   const [activePlaylistId, setActivePlaylistId] = useState<string | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
@@ -61,7 +61,7 @@ export default function PlaylistTab() {
   const handleDragStart = (idx: number) => setDragIdx(idx);
   const handleDrop = (toIdx: number) => {
     if (dragIdx === null || dragIdx === toIdx) return;
-    reorderPlaylist(activePlaylist.id, dragIdx, toIdx);
+    reorderSong(activePlaylist.id, dragIdx, toIdx);
     setDragIdx(null);
   };
 
@@ -71,7 +71,15 @@ export default function PlaylistTab() {
         <button onClick={() => setActivePlaylistId(null)} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#a1a1aa' }}>
           <ChevronLeft size={16} /> Quay lại
         </button>
-        <button onClick={() => playPlaylist(activePlaylist.id)} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', background: 'white', color: 'black', padding: '6px 12px', borderRadius: '16px', fontWeight: 600 }}>
+        <button 
+          onClick={() => { 
+            if (activePlaylist.songs.length > 0) {
+              setCurrentSong(activePlaylist.songs[0]);
+              activePlaylist.songs.slice(1).forEach(s => addToQueue(s));
+            }
+          }} 
+          style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', background: 'white', color: 'black', padding: '6px 12px', borderRadius: '16px', fontWeight: 600 }}
+        >
           <Play size={12} fill="black" /> Phát tất cả
         </button>
       </div>
@@ -99,7 +107,7 @@ export default function PlaylistTab() {
                 song={song}
                 isActive={currentSong?.id === song.id}
                 onPlay={() => setCurrentSong(song)}
-                onRemove={() => removeSongFromPlaylist(activePlaylist.id, idx)}
+                onRemove={() => removeSongFromPlaylist(activePlaylist.id, song.id)}
                 onAddToQueue={() => addToQueue(song)}
               />
             </div>

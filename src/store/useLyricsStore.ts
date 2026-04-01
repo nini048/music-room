@@ -63,42 +63,70 @@ export const useLyricsStore = create<LyricsState>((set, get) => ({
   currentLineIndex: -1,
 
   fetchLyrics: async (artist: string, track: string) => {
-    const cleanArtist = cleanMetadata(artist);
-    const cleanTrack = cleanMetadata(track);
-    
+    // Step 1: Smart parsing — YouTube titles often look like "Artist - Song (Official Video)"
+    let finalArtist = artist;
+    let finalTrack = track;
+
+    // If track contains " - ", treat left side as artist, right side as title
+    if (track.includes(' - ')) {
+      const dashIdx = track.indexOf(' - ');
+      finalArtist = track.substring(0, dashIdx).trim();
+      finalTrack = track.substring(dashIdx + 3).trim();
+    }
+
+    const cleanArtist = cleanMetadata(finalArtist);
+    const cleanTrack = cleanMetadata(finalTrack);
+
     set({ isLoading: true, error: null, lyrics: [], plainLyrics: null, currentLineIndex: -1 });
+
+    const tryGetLyrics = async (a: string, t: string): Promise<{ syncedLyrics?: string; plainLyrics?: string } | null> => {
+      const getUrl = `https://lrclib.net/api/get?artist_name=${encodeURIComponent(a)}&track_name=${encodeURIComponent(t)}&album_name=`;
+      const res = await fetch(getUrl);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.syncedLyrics || data.plainLyrics) return data;
+      }
+      // Fallback to search
+      const searchRes = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(`${a} ${t}`)}`);
+      if (searchRes.ok) {
+        const results = await searchRes.json();
+        if (Array.isArray(results) && results.length > 0) return results[0];
+      }
+      return null;
+    };
+
     try {
-      const url = `https://lrclib.net/api/get?artist_name=${encodeURIComponent(cleanArtist)}&track_name=${encodeURIComponent(cleanTrack)}`;
-      const response = await fetch(url);
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data.syncedLyrics) {
-          set({ lyrics: parseLRC(data.syncedLyrics), plainLyrics: data.plainLyrics, isLoading: false });
-        } else {
-          set({ plainLyrics: data.plainLyrics || 'No lyrics found.', isLoading: false });
-        }
-      } else {
-        // Fallback to search if get fails
-        const searchUrl = `https://lrclib.net/api/search?q=${encodeURIComponent(`${cleanArtist} ${cleanTrack}`)}`;
-        const searchRes = await fetch(searchUrl);
-        if (searchRes.ok) {
-          const searchData = await searchRes.json();
-          if (searchData && searchData.length > 0) {
-            const bestMatch = searchData[0];
-            if (bestMatch.syncedLyrics) {
-               set({ lyrics: parseLRC(bestMatch.syncedLyrics), plainLyrics: bestMatch.plainLyrics, isLoading: false });
-            } else {
-               set({ plainLyrics: bestMatch.plainLyrics || 'No lyrics found.', isLoading: false });
-            }
-          } else {
-             set({ error: 'Lyrics not found.', isLoading: false });
-          }
-        } else {
-          set({ error: 'Failed to fetch lyrics.', isLoading: false });
+      let data: { syncedLyrics?: string; plainLyrics?: string } | null = null;
+
+      // Attempt 1: clean artist + clean track
+      data = await tryGetLyrics(cleanArtist, cleanTrack);
+
+      // Attempt 2: original artist + clean track (if channel name was different)
+      if (!data) {
+        data = await tryGetLyrics(cleanMetadata(artist), cleanTrack);
+      }
+
+      // Attempt 3: search track-only (no artist constraint)
+      if (!data) {
+        const trackOnlyRes = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(cleanTrack)}`);
+        if (trackOnlyRes.ok) {
+          const results = await trackOnlyRes.json();
+          if (Array.isArray(results) && results.length > 0) data = results[0];
         }
       }
-    } catch (err) {
+
+      if (data) {
+        if (data.syncedLyrics) {
+          set({ lyrics: parseLRC(data.syncedLyrics), plainLyrics: data.plainLyrics || null, isLoading: false });
+        } else if (data.plainLyrics) {
+          set({ plainLyrics: data.plainLyrics, lyrics: [], isLoading: false });
+        } else {
+          set({ error: 'Lyrics not found.', isLoading: false });
+        }
+      } else {
+        set({ error: 'Lyrics not found.', isLoading: false });
+      }
+    } catch {
       set({ error: 'An error occurred while fetching lyrics.', isLoading: false });
     }
   },

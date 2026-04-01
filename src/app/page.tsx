@@ -27,7 +27,7 @@ export default function Home() {
       <div className={styles.contentWrapper}>
         
         {/* Left Area (Player, Controls, Search) */}
-        <div className={styles.leftColumn}>
+        <div id="main-scroll-container" className={styles.leftColumn}>
           <PlayerContainer />
         </div>
 

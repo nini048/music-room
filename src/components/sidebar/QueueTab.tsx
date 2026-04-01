@@ -3,21 +3,15 @@
 import { useState } from 'react';
 import { usePlayerStore, Song } from '@/store/usePlayerStore';
 import { usePlaylistStore } from '@/store/usePlaylistStore';
-import { Trash2, Play, SkipForward, ListMusic, MoreVertical, GripVertical, X } from 'lucide-react';
+import { Trash2, Play, SkipForward, ListMusic, GripVertical, X } from 'lucide-react';
 import styles from './Tabs.module.css';
 
 export default function QueueTab() {
   const { queue, removeFromQueue, playNext, setCurrentSong, currentSong } = usePlayerStore();
   const { playlists, addSongToPlaylist, createPlaylist } = usePlaylistStore();
-  const [menuSong, setMenuSong] = useState<Song | null>(null);
   const [playlistPickSong, setPlaylistPickSong] = useState<Song | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [newPlaylistName, setNewPlaylistName] = useState('');
-
-  const moveToFront = (song: Song) => {
-    playNext(song);
-    setMenuSong(null);
-  };
 
   const handleDragStart = (idx: number) => setDragIdx(idx);
   const handleDrop = (toIdx: number) => {
@@ -47,7 +41,6 @@ export default function QueueTab() {
             song={currentSong}
             isActive
             onPlay={() => setCurrentSong(currentSong)}
-            onMenu={() => {}}
           />
         </div>
       )}
@@ -69,19 +62,12 @@ export default function QueueTab() {
             >
               <SongRow
                 song={song}
-                onPlay={() => { setCurrentSong(song); }}
-                onMenu={() => setMenuSong(menuSong?.id === song.id ? null : song)}
+                onPlay={() => setCurrentSong(song)}
+                onPlayNext={() => playNext(song)}
+                onAddToPlaylist={() => setPlaylistPickSong(song)}
+                onRemove={() => removeFromQueue(song.id)}
                 showDrag
               />
-              {menuSong?.id === song.id && (
-                <ContextMenu
-                  onPlayNow={() => { setCurrentSong(song); setMenuSong(null); }}
-                  onMoveToFront={() => moveToFront(song)}
-                  onAddToPlaylist={() => { setPlaylistPickSong(song); setMenuSong(null); }}
-                  onRemove={() => { removeFromQueue(song.id); setMenuSong(null); }}
-                  onClose={() => setMenuSong(null)}
-                />
-              )}
             </div>
           ))}
         </div>
@@ -106,8 +92,14 @@ export default function QueueTab() {
 }
 
 // ─── Song Row ─────────────────────────────────────────────────────────────────
-function SongRow({ song, isActive, onPlay, onMenu, showDrag }: {
-  song: Song; isActive?: boolean; onPlay: () => void; onMenu: () => void; showDrag?: boolean;
+function SongRow({ song, isActive, onPlay, onPlayNext, onAddToPlaylist, onRemove, showDrag }: {
+  song: Song;
+  isActive?: boolean;
+  onPlay: () => void;
+  onPlayNext?: () => void;
+  onAddToPlaylist?: () => void;
+  onRemove?: () => void;
+  showDrag?: boolean;
 }) {
   return (
     <div className={`${styles.songRow} ${isActive ? styles.songRowActive : ''}`}>
@@ -133,33 +125,25 @@ function SongRow({ song, isActive, onPlay, onMenu, showDrag }: {
         <p className={styles.songArtist}>{song.artist}</p>
       </div>
       {!isActive && (
-        <button onClick={onMenu} className={styles.menuBtn}>
-          <MoreVertical size={14} />
-        </button>
+        <div className={styles.hoverActions}>
+          {onPlayNext && (
+            <button onClick={onPlayNext} className={styles.hoverActionBtn} title="Phát tiếp theo">
+              <SkipForward size={13} />
+            </button>
+          )}
+          {onAddToPlaylist && (
+            <button onClick={onAddToPlaylist} className={styles.hoverActionBtn} title="Thêm vào playlist">
+              <ListMusic size={13} />
+            </button>
+          )}
+          {onRemove && (
+            <button onClick={onRemove} className={`${styles.hoverActionBtn} ${styles.hoverActionBtnDanger}`} title="Xóa">
+              <Trash2 size={13} />
+            </button>
+          )}
+        </div>
       )}
     </div>
-  );
-}
-
-// ─── Context Menu ─────────────────────────────────────────────────────────────
-function ContextMenu({ onPlayNow, onMoveToFront, onAddToPlaylist, onRemove, onClose }: {
-  onPlayNow: () => void; onMoveToFront: () => void; onAddToPlaylist: () => void; onRemove: () => void; onClose: () => void;
-}) {
-  return (
-    <div className={styles.contextMenuWrapper}>
-      <MenuBtn icon={<Play size={12} />} label="Phát ngay" onClick={onPlayNow} />
-      <MenuBtn icon={<SkipForward size={12} />} label="Đẩy lên đầu hàng chờ" onClick={onMoveToFront} />
-      <MenuBtn icon={<ListMusic size={12} />} label="Thêm vào playlist" onClick={onAddToPlaylist} />
-      <MenuBtn icon={<Trash2 size={12} />} label="Xóa khỏi hàng chờ" onClick={onRemove} danger />
-    </div>
-  );
-}
-
-function MenuBtn({ icon, label, onClick, danger }: { icon: React.ReactNode; label: string; onClick: () => void; danger?: boolean }) {
-  return (
-    <button onClick={onClick} className={`${styles.menuItemBtn} ${danger ? styles.menuItemDanger : ''}`}>
-      {icon}<span>{label}</span>
-    </button>
   );
 }
 

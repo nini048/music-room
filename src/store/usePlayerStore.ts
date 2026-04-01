@@ -29,12 +29,15 @@ interface PlayerState {
   setPlayerMode: (mode: 'video' | 'audio') => void;
   setCurrentSong: (song: Song) => void;
   setCurrentTime: (time: number) => void;
+  seekTo: (time: number) => void;
+  registerSeek: (fn: (t: number) => void) => void;
   toggleFullscreen: () => void;
   setFullscreen: (val: boolean) => void;
   addToQueue: (song: Song) => void;
   removeFromQueue: (songId: string) => void;
   playNext: (song: Song) => void;
   clearQueue: () => void;
+  clearHistory: () => void;
   setPlaying: (isPlaying: boolean) => void;
   togglePlay: () => void;
   setVolume: (volume: number) => void;
@@ -68,6 +71,12 @@ export const usePlayerStore = create<PlayerState>()(
         set({ currentSong: song, isPlaying: true, currentTime: 0, history: newHistory });
       },
       setCurrentTime: (time) => set({ currentTime: time }),
+      seekTo: (time) => {
+        const { _seekFn } = get() as any;
+        if (_seekFn) _seekFn(time);
+        set({ currentTime: time });
+      },
+      registerSeek: (fn) => (set as any)({ _seekFn: fn }),
       toggleFullscreen: () => set({ isFullscreen: !get().isFullscreen }),
       setFullscreen: (val) => set({ isFullscreen: val }),
       togglePlayerMode: () => {
@@ -106,6 +115,7 @@ export const usePlayerStore = create<PlayerState>()(
       },
 
       clearQueue: () => set({ queue: [] }),
+      clearHistory: () => set({ history: [] }),
 
       setPlaying: (isPlaying) => set({ isPlaying }),
       togglePlay: () => set((s) => ({ isPlaying: !s.isPlaying })),

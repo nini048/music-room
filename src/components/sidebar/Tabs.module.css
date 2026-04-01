@@ -176,6 +176,41 @@
   background-color: rgba(255, 255, 255, 0.05);
 }
 
+/* ─── Hover Action Buttons ─────────────────────────────────────────────────── */
+.hoverActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.songRow:hover .hoverActions {
+  opacity: 1;
+}
+
+.hoverActionBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+}
+
+.hoverActionBtn:hover {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.hoverActionBtnDanger:hover {
+  color: #f87171;
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
 .contextMenuWrapper {
   margin: 0 8px 4px 8px;
   border-radius: 12px;

@@ -17,9 +17,10 @@ export default function MiniPlayer({ controlsRef }: MiniPlayerProps) {
 
   useEffect(() => {
     if (!controlsRef.current) return;
+    const root = document.getElementById('main-scroll-container');
     const observer = new IntersectionObserver(
       ([entry]) => setVisible(!entry.isIntersecting),
-      { threshold: 0.1 }
+      { threshold: 0.1, root }
     );
     observer.observe(controlsRef.current);
     return () => observer.disconnect();

@@ -8,19 +8,24 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import styles from './FullscreenOverlay.module.css';
 
 export default function FullscreenOverlay() {
   const {
     currentSong, isFullscreen, setFullscreen,
     isPlaying, togglePlay, next, previous,
-    currentTime, isShuffle, toggleShuffle,
+    currentTime, seekTo,
+    isShuffle, toggleShuffle,
     repeatMode, setRepeatMode, volume, setVolume,
   } = usePlayerStore();
   const { lyrics } = useLyricsStore();
   const lyricsRef = useRef<HTMLDivElement>(null);
   const [showControls, setShowControls] = useState(true);
   const controlsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   const activeIndex = lyrics.findIndex((line, i) => {
     const next = lyrics[i + 1];
@@ -34,7 +39,7 @@ export default function FullscreenOverlay() {
     }
   }, [activeIndex]);
 
-  // Auto-hide controls navigation
+  // Auto-hide controls
   const resetControlsTimer = () => {
     setShowControls(true);
     if (controlsTimer.current) clearTimeout(controlsTimer.current);
@@ -43,9 +48,8 @@ export default function FullscreenOverlay() {
   useEffect(() => {
     if (isFullscreen) resetControlsTimer();
     return () => { if (controlsTimer.current) clearTimeout(controlsTimer.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFullscreen]);
-
-  if (!isFullscreen || !currentSong) return null;
 
   const handleToggleRepeat = () => {
     if (repeatMode === 'none') setRepeatMode('all');
@@ -53,7 +57,14 @@ export default function FullscreenOverlay() {
     else setRepeatMode('none');
   };
 
-  return (
+  // Seek to a lyric line time
+  const handleLyricClick = (time: number) => {
+    seekTo(time);
+  };
+
+  if (!mounted || !isFullscreen || !currentSong) return null;
+
+  const overlay = (
     <AnimatePresence>
       <motion.div
         className={styles.wrapper}
@@ -64,13 +75,13 @@ export default function FullscreenOverlay() {
         onMouseMove={resetControlsTimer}
         onTouchStart={resetControlsTimer}
       >
-        {/* Extreme Background blur from thumbnail */}
+        {/* Background blur from thumbnail */}
         <div className={styles.bgContainer}>
           <img src={currentSong.cover || currentSong.thumbnail} alt="" className={styles.bgImage} />
           <div className={styles.bgOverlay} />
         </div>
 
-        {/* 1. Header Navigation */}
+        {/* Header */}
         <motion.div
           className={styles.headerNav}
           animate={{ opacity: showControls ? 1 : 0 }}
@@ -85,11 +96,41 @@ export default function FullscreenOverlay() {
           </button>
         </motion.div>
 
-        {/* 2. Main Layout 2 Columns */}
+        {/* Main 2-col layout: LEFT=Lyrics, RIGHT=Controls */}
         <div className={styles.mainLayout}>
 
-          {/* CỘT TRÁI: Player Info & Controls */}
+          {/* LEFT: Giant synced lyrics */}
           <div className={styles.leftCol}>
+            <p className={styles.lyricsLabel}>Lyrics</p>
+            {lyrics.length > 0 ? (
+              <div ref={lyricsRef} className={`custom-scrollbar ${styles.lyricsArea}`}>
+                {lyrics.map((line, i) => {
+                  const isActive = activeIndex === i;
+                  return (
+                    <motion.p
+                      key={i}
+                      className={`${styles.lyricLine} ${isActive ? styles.lyricActive : styles.lyricInactive}`}
+                      animate={{ opacity: isActive ? 1 : 0.3, scale: isActive ? 1 : 0.95 }}
+                      transition={{ duration: 0.3 }}
+                      onClick={() => handleLyricClick(line.time)}
+                      title="Click để nhảy tới đây"
+                    >
+                      {line.text}
+                    </motion.p>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className={styles.emptyLyrics}>
+                ♪ Không tìm thấy lời bài hát
+              </div>
+            )}
+            <div className={styles.gradientTop} />
+            <div className={styles.gradientBottom} />
+          </div>
+
+          {/* RIGHT: Album art + controls */}
+          <div className={styles.rightCol}>
             {/* Album Art */}
             <motion.div
               className={styles.albumArtWrapper}
@@ -116,7 +157,6 @@ export default function FullscreenOverlay() {
 
             {/* Playback Controls */}
             <div className={styles.playbackControls}>
-              {/* Row 1: Buttons */}
               <div className={styles.controlRow1}>
                 <button onClick={toggleShuffle} className={`${styles.iconBtn} ${isShuffle ? styles.iconBtnActive : ''}`}>
                   <Shuffle size={20} />
@@ -135,7 +175,6 @@ export default function FullscreenOverlay() {
                 </button>
               </div>
 
-              {/* Row 2: Volume */}
               <div className={styles.controlRow2}>
                 <button onClick={() => setVolume(volume === 0 ? 0.5 : 0)} className={styles.volumeBtn}>
                   {volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
@@ -147,35 +186,10 @@ export default function FullscreenOverlay() {
             </div>
           </div>
 
-          {/* CỘT PHẢI: Lyrics Khổng lồ */}
-          <div className={styles.rightCol}>
-            <p className={styles.lyricsLabel}>Lyrics</p>
-            {lyrics.length > 0 ? (
-              <div ref={lyricsRef} className={`custom-scrollbar ${styles.lyricsArea}`}>
-                {lyrics.map((line, i) => {
-                  const isActive = activeIndex === i;
-                  return (
-                    <motion.p key={i}
-                      className={`${styles.lyricLine} ${isActive ? styles.lyricActive : styles.lyricInactive}`}
-                      animate={{ opacity: isActive ? 1 : 0.3 }}
-                    >
-                      {line.text}
-                    </motion.p>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className={styles.emptyLyrics}>
-                ♪ Âm nhạc bay bổng, nhưng không tìm thấy lời bài hát
-              </div>
-            )}
-            
-            {/* Gradient shadow to fade out bottom and top of lyrics slightly */}
-            <div className={styles.gradientTop} />
-            <div className={styles.gradientBottom} />
-          </div>
         </div>
       </motion.div>
     </AnimatePresence>
   );
+
+  return createPortal(overlay, document.body);
 }
