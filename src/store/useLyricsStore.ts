@@ -19,19 +19,41 @@ interface LyricsState {
 
 const cleanMetadata = (text: string): string => {
   return text
-    .replace(/\(Official Video\)/gi, '')
-    .replace(/\[Official Video\]/gi, '')
-    .replace(/\(Lyric Video\)/gi, '')
-    .replace(/\[Lyric Video\]/gi, '')
+    .replace(/\(Official.*?Video\)/gi, '')
+    .replace(/\[Official.*?Video\]/gi, '')
+    .replace(/\(Lyric.*?Video\)/gi, '')
+    .replace(/\[Lyric.*?Video\]/gi, '')
     .replace(/\(Official Audio\)/gi, '')
     .replace(/\[Official Audio\]/gi, '')
     .replace(/\(Music Video\)/gi, '')
     .replace(/\[Music Video\]/gi, '')
+    .replace(/\(?Official.*?\)?/gi, '')
+    .replace(/\[?Official.*?\]?/gi, '')
+    .replace(/\(?Lyrics?\)?/gi, '')
+    .replace(/\[?Lyrics?\]?/gi, '')
     .replace(/\(feat\..*?\)/gi, '')
     .replace(/\[feat\..*?\]/gi, '')
     .replace(/\(with.*?\)/gi, '')
     .replace(/\d{4} - /g, '')
+    .replace(/MV/gi, '')
     .trim();
+};
+
+const extractArtistAndTitle = (rawArtist: string, rawTrack: string) => {
+  let cleanTitle = cleanMetadata(rawTrack);
+  let finalArtist = rawArtist;
+  let finalTrack = cleanTitle;
+
+  if (cleanTitle.includes('-')) {
+    const parts = cleanTitle.split('-');
+    finalArtist = parts[0].trim();
+    finalTrack = parts.slice(1).join('-').trim();
+  } else if (cleanTitle.includes('|')) {
+    const parts = cleanTitle.split('|');
+    finalTrack = parts[0].trim();
+    finalArtist = parts.length > 1 ? parts[1].trim() : rawArtist;
+  }
+  return { artist: finalArtist, track: finalTrack };
 };
 
 const parseLRC = (lrc: string): LyricLine[] => {
@@ -63,19 +85,10 @@ export const useLyricsStore = create<LyricsState>((set, get) => ({
   currentLineIndex: -1,
 
   fetchLyrics: async (artist: string, track: string) => {
-    // Step 1: Smart parsing — YouTube titles often look like "Artist - Song (Official Video)"
-    let finalArtist = artist;
-    let finalTrack = track;
-
-    // If track contains " - ", treat left side as artist, right side as title
-    if (track.includes(' - ')) {
-      const dashIdx = track.indexOf(' - ');
-      finalArtist = track.substring(0, dashIdx).trim();
-      finalTrack = track.substring(dashIdx + 3).trim();
-    }
-
-    const cleanArtist = cleanMetadata(finalArtist);
-    const cleanTrack = cleanMetadata(finalTrack);
+    // Treat the track text as potentially containing both artist and track, falling back to 'artist'
+    const { artist: finalArtist, track: finalTrack } = extractArtistAndTitle(artist || '', track || '');
+    const cleanArtist = finalArtist || '';
+    const cleanTrack = finalTrack || '';
 
     set({ isLoading: true, error: null, lyrics: [], plainLyrics: null, currentLineIndex: -1 });
 

@@ -34,8 +34,8 @@ export const useToastStore = create<ToastState>((set, get) => ({
 
 // Convenience helpers
 export const toast = {
-  success: (message: string) => useToastStore.getState().addToast({ type: 'success', message }),
-  warning: (message: string) => useToastStore.getState().addToast({ type: 'warning', message }),
-  error: (message: string) => useToastStore.getState().addToast({ type: 'error', message }),
-  info: (message: string) => useToastStore.getState().addToast({ type: 'info', message }),
+  success: (message: string, opts?: { duration?: number }) => useToastStore.getState().addToast({ type: 'success', message, ...opts }),
+  warning: (message: string, opts?: { duration?: number }) => useToastStore.getState().addToast({ type: 'warning', message, ...opts }),
+  error: (message: string, opts?: { duration?: number }) => useToastStore.getState().addToast({ type: 'error', message, ...opts }),
+  info: (message: string, opts?: { duration?: number }) => useToastStore.getState().addToast({ type: 'info', message, ...opts }),
 };

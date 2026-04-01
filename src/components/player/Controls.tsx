@@ -2,9 +2,10 @@
 
 import {
   Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Repeat1,
-  Volume2, VolumeX, Headphones, Moon, Maximize2
+  Volume2, VolumeX, Headphones, Moon, Maximize2, Cast
 } from 'lucide-react';
 import { usePlayerStore } from '@/store/usePlayerStore';
+import { toast } from '@/store/useToastStore';
 import { useState, useRef, useEffect } from 'react';
 import ProgressBar from './ProgressBar';
 import styles from './Controls.module.css';
@@ -122,6 +123,15 @@ export default function Controls() {
               </div>
             )}
           </div>
+
+          {/* Devices Toggle (Mock) */}
+          <button 
+            onClick={() => toast.info('Vui lòng chọn thiết bị đầu ra (loa/tai nghe) từ cài đặt âm thanh của hệ điều hành, hoặc nút Cast của trình duyệt Chrome.', { duration: 6000 })}
+            className={styles.utilityBtn}
+            title="Thiết bị phát"
+          >
+            <Cast size={18} />
+          </button>
 
           {/* Fullscreen Toggle */}
           <button onClick={toggleFullscreen} disabled={!currentSong}

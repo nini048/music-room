@@ -12,13 +12,7 @@ import MiniPlayer from '@/components/player/MiniPlayer';
 import SearchBar from '@/components/sidebar/SearchBar';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import styles from './PlayerContainer.module.css';
-
-// Dynamically import ReactPlayer (client-only, no SSR)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ReactPlayerDynamic = dynamic<any>(() => import('react-player'), {
-  ssr: false,
-  loading: () => <div style={{ width: '100%', height: '100%', background: '#000' }} />,
-});
+import CustomYouTubePlayer from './CustomYouTubePlayer';
 
 export default function PlayerContainer() {
   const { currentSong, isPlaying, volume, next, setCurrentTime, playerMode, sleepTimer, setPlaying, addToQueue, setCurrentSong, registerSeek } = usePlayerStore();
@@ -26,6 +20,7 @@ export default function PlayerContainer() {
   const { setDominantColor } = useColorStore();
   const controlsRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
+  const [isMounted, setIsMounted] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [importUrl, setImportUrl] = useState('');
   const [importing, setImporting] = useState(false);
@@ -33,8 +28,11 @@ export default function PlayerContainer() {
 
   // Register the seek function once player mounts
   useEffect(() => {
+    setIsMounted(true);
     registerSeek((time: number) => {
-      playerRef.current?.seekTo(time, 'seconds');
+      if (playerRef.current && typeof playerRef.current.seekTo === 'function') {
+        playerRef.current.seekTo(time, 'seconds');
+      }
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -127,31 +125,7 @@ export default function PlayerContainer() {
             
             {/* Player */}
             <div className={styles.reactPlayerContainer} style={{ opacity: playerMode === 'audio' ? 0 : 1, pointerEvents: playerMode === 'audio' ? 'none' : 'auto' }}>
-              <ReactPlayerDynamic
-                ref={playerRef}
-                url={`https://www.youtube.com/watch?v=${currentSong.id}`}
-                playing={isPlaying}
-                volume={volume}
-                muted={volume === 0}
-                width="100%"
-                height="100%"
-                onEnded={() => next()}
-                onReady={() => setPlaying(true)}
-                onPlay={() => setPlaying(true)}
-                onPause={() => setPlaying(false)}
-                onProgress={(state: { playedSeconds: number }) => setCurrentTime(state.playedSeconds)}
-                config={{
-                  youtube: {
-                    playerVars: { 
-                      controls: 0, 
-                      modestbranding: 1, 
-                      rel: 0, 
-                      disablekb: 1,
-                      origin: typeof window !== 'undefined' ? window.location.origin : ''
-                    }
-                  }
-                }}
-              />
+              <CustomYouTubePlayer videoId={currentSong.id} />
             </div>
           </div>
         )}

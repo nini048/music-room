@@ -1,0 +1,115 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-bottom: 80px; /* Space for scrolling */
+  position: relative;
+  mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+}
+
+.songHeader {
+  position: sticky;
+  top: 0;
+  background: var(--bg-color);
+  padding: 16px 8px;
+  margin-bottom: 24px;
+  z-index: 10;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.songTitle {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.songArtist {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Individual synced lines */
+.lyricLine {
+  font-size: 1.25rem; /* Base size */
+  font-weight: 700;
+  line-height: 1.4;
+  padding: 10px 16px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  transform-origin: left center;
+}
+
+@media (min-width: 1024px) {
+  .lyricLine { font-size: 1.125rem; }
+}
+
+.lyricLine:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.active {
+  color: white;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+}
+
+.inactive {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.inactive:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Plain lyrics fallback */
+.plainLyrics {
+  margin-top: 16px;
+  padding: 0 16px;
+  text-align: center;
+}
+
+.plainLine {
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+  margin-bottom: 4px;
+}
+
+/* Empty / Loading States */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.emptyIcon {
+  color: rgba(255, 255, 255, 0.15);
+  margin-bottom: 16px;
+}
+
+.spinner {
+  color: rgba(255, 255, 255, 0.2);
+  margin-bottom: 16px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
