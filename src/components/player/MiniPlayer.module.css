@@ -1,10 +1,10 @@
 .miniPlayerWrapper {
   position: fixed;
-  bottom: 0;
+  top: 0;
   left: 0;
   right: 0;
   z-index: 100;
-  padding: 0 12px 12px 12px;
+  padding: 12px 12px 0 12px;
   pointer-events: none;
 }
 
@@ -131,6 +131,7 @@
   height: 4px;
   border-radius: var(--radius-full);
   -webkit-appearance: none;
+  appearance: none;
   background-color: rgba(255, 255, 255, 0.1);
   accent-color: white;
   cursor: pointer;

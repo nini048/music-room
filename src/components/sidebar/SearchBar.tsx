@@ -73,7 +73,7 @@ export default function SearchBar() {
 
   const handlePlayNow = (song: Song) => {
     setCurrentSong(song);
-    clearSearch();
+    // Removed clearSearch() to keep results visible as requested
   };
 
   return (
