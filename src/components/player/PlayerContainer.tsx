@@ -41,7 +41,7 @@ export default function PlayerContainer() {
 
   useEffect(() => {
     if (currentSong) {
-      fetchLyrics(currentSong.artist, currentSong.title);
+      fetchLyrics(currentSong);
       setDominantColor(currentSong.thumbnail || currentSong.cover || '');
     }
   }, [currentSong, fetchLyrics, setDominantColor]);

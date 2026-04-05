@@ -7,7 +7,7 @@ import { Trash2, Play, SkipForward, ListMusic, GripVertical, X } from 'lucide-re
 import styles from './Tabs.module.css';
 
 export default function QueueTab() {
-  const { queue, removeFromQueue, playNext, setCurrentSong, currentSong } = usePlayerStore();
+  const { queue, removeFromQueue, playNext, setCurrentSong, currentSong, clearQueue, loadDefaultSongs, saveQueueAsDefault } = usePlayerStore();
   const { playlists, addSongToPlaylist, createPlaylist } = usePlaylistStore();
   const [playlistPickSong, setPlaylistPickSong] = useState<Song | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
@@ -28,11 +28,34 @@ export default function QueueTab() {
       <Play size={32} className={styles.emptyIcon} />
       <p>Hàng chờ đang trống</p>
       <p className={styles.emptySubtext}>Tìm kiếm và thêm bài hát</p>
+      <button
+        onClick={loadDefaultSongs}
+        className={styles.loadDefaultBtn}
+      >
+        ✦ Load nhạc mặc định
+      </button>
     </div>
   );
 
   return (
     <div className={styles.container}>
+      {/* Queue header with clear + load default */}
+      {(queue.length > 0 || currentSong) && (
+        <div className={styles.queueHeader}>
+          <button onClick={loadDefaultSongs} className={styles.queueHeaderBtn} title="Nạp nhạc mặc định">
+            ✦ Nạp mặc định
+          </button>
+          <button onClick={saveQueueAsDefault} className={styles.queueHeaderBtn} title="Lưu danh sách hiện tại làm mặc định">
+            ✦ Lưu mặc định
+          </button>
+          {queue.length > 0 && (
+            <button onClick={clearQueue} className={`${styles.queueHeaderBtn} ${styles.queueHeaderBtnDanger}`} title="Xoá hàng chờ">
+              Xoá tất cả
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Current Song */}
       {currentSong && (
         <div style={{ marginBottom: '8px' }}>

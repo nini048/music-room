@@ -2,11 +2,10 @@
 
 import {
   Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Repeat1,
-  Volume2, VolumeX, Headphones, Moon, Maximize2, Cast
+  Volume2, VolumeX, Headphones, Moon, Maximize2, Speaker
 } from 'lucide-react';
 import { usePlayerStore } from '@/store/usePlayerStore';
-import { toast } from '@/store/useToastStore';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import ProgressBar from './ProgressBar';
 import styles from './Controls.module.css';
 
@@ -124,14 +123,8 @@ export default function Controls() {
             )}
           </div>
 
-          {/* Devices Toggle (Mock) */}
-          <button 
-            onClick={() => toast.info('Vui lòng chọn thiết bị đầu ra (loa/tai nghe) từ cài đặt âm thanh của hệ điều hành, hoặc nút Cast của trình duyệt Chrome.', { duration: 6000 })}
-            className={styles.utilityBtn}
-            title="Thiết bị phát"
-          >
-            <Cast size={18} />
-          </button>
+          {/* Audio Device Picker */}
+          <AudioDevicePicker />
 
           {/* Fullscreen Toggle */}
           <button onClick={toggleFullscreen} disabled={!currentSong}
@@ -152,6 +145,112 @@ export default function Controls() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── Audio Device Picker ───────────────────────────────────────────────────────
+interface AudioDevice {
+  deviceId: string;
+  label: string;
+}
+
+function AudioDevicePicker() {
+  const [open, setOpen] = useState(false);
+  const [devices, setDevices] = useState<AudioDevice[]>([]);
+  const [selectedId, setSelectedId] = useState<string>('default');
+  const [loading, setLoading] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const loadDevices = useCallback(async () => {
+    setLoading(true);
+    try {
+      // Need at least one permission grant to see device labels
+      if (!navigator.mediaDevices?.enumerateDevices) {
+        setDevices([{ deviceId: 'default', label: 'Hệ thống mặc định' }]);
+        return;
+      }
+      const all = await navigator.mediaDevices.enumerateDevices();
+      const outputs = all
+        .filter(d => d.kind === 'audiooutput')
+        .map(d => ({
+          deviceId: d.deviceId,
+          label: d.label || (d.deviceId === 'default' ? 'Hệ thống mặc định' : `Thiết bị ${d.deviceId.slice(0, 8)}`),
+        }));
+      setDevices(outputs.length > 0 ? outputs : [{ deviceId: 'default', label: 'Hệ thống mặc định' }]);
+    } catch {
+      setDevices([{ deviceId: 'default', label: 'Hệ thống mặc định' }]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const handleOpen = async () => {
+    const next = !open;
+    setOpen(next);
+    if (next) await loadDevices();
+  };
+
+  const handleSelect = async (deviceId: string) => {
+    setSelectedId(deviceId);
+    setOpen(false);
+    // Apply to all audio elements we can access
+    const audios = document.querySelectorAll('audio, video');
+    for (const el of Array.from(audios)) {
+      if ('setSinkId' in el) {
+        try { await (el as any).setSinkId(deviceId); } catch { /* cross-origin iframe */ }
+      }
+    }
+  };
+
+  const isActive = selectedId !== 'default';
+
+  return (
+    <div className={styles.deviceWrapper} ref={wrapperRef}>
+      <button
+        onClick={handleOpen}
+        className={`${styles.utilityBtn} ${isActive ? styles.utilityBtnActive : styles.utilityBtnInactive}`}
+        title="Thiết bị phát âm thanh"
+      >
+        <Speaker size={18} />
+      </button>
+
+      {open && (
+        <div className={styles.deviceMenu}>
+          <p className={styles.deviceMenuTitle}>Thiết bị phát</p>
+          {loading ? (
+            <p className={styles.deviceLoading}>Đang tải...</p>
+          ) : (
+            <div className={styles.deviceList}>
+              {devices.map(d => (
+                <button
+                  key={d.deviceId}
+                  onClick={() => handleSelect(d.deviceId)}
+                  className={`${styles.deviceItem} ${selectedId === d.deviceId ? styles.deviceItemActive : ''}`}
+                >
+                  <span className={styles.deviceItemDot} />
+                  <span className={styles.deviceItemLabel}>{d.label}</span>
+                  {selectedId === d.deviceId && <span className={styles.deviceItemCheck}>✓</span>}
+                </button>
+              ))}
+            </div>
+          )}
+          <p className={styles.deviceNote}>
+            * YouTube dùng iframe nên routing phụ thuộc trình duyệt/OS
+          </p>
+        </div>
+      )}
     </div>
   );
 }

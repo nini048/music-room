@@ -4,8 +4,12 @@
   justify-content: space-between;
   width: 100%;
   padding: var(--space-4) var(--space-6);
-  z-index: 30;
+  z-index: 50;
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  background: transparent;
+  backdrop-filter: blur(0px);
 }
 
 @media (min-width: 1024px) {

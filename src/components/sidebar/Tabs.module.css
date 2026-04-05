@@ -238,3 +238,55 @@
 .menuItemDanger {
   color: #f87171;
 }
+
+/* ─── Queue header toolbar ─────────────────────────────────────────────────── */
+.queueHeader {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.queueHeaderBtn {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+  letter-spacing: 0.02em;
+}
+
+.queueHeaderBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.queueHeaderBtnDanger:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+/* ─── Load default button in empty state ───────────────────────────────────── */
+.loadDefaultBtn {
+  margin-top: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.03em;
+  transition: all 0.2s ease;
+}
+
+.loadDefaultBtn:hover {
+  background: rgba(255, 255, 255, 0.13);
+  color: white;
+  transform: translateY(-1px);
+}

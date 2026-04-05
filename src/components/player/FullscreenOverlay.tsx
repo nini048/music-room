@@ -105,18 +105,28 @@ export default function FullscreenOverlay() {
             {lyrics.length > 0 ? (
               <div ref={lyricsRef} className={`custom-scrollbar ${styles.lyricsArea}`}>
                 {lyrics.map((line, i) => {
-                  const isActive = activeIndex === i;
+                  const dist = activeIndex >= 0 ? Math.abs(i - activeIndex) : 999;
+                  const isActive = dist === 0;
+                  const isAdjacent = dist === 1;
                   return (
-                    <motion.p
+                    <p
                       key={i}
-                      className={`${styles.lyricLine} ${isActive ? styles.lyricActive : styles.lyricInactive}`}
-                      animate={{ opacity: isActive ? 1 : 0.3, scale: isActive ? 1 : 0.95 }}
-                      transition={{ duration: 0.3 }}
-                      onClick={() => handleLyricClick(line.time)}
-                      title="Click để nhảy tới đây"
+                      className={`${styles.lyricLine} ${
+                        isActive
+                          ? styles.lyricActive
+                          : isAdjacent
+                          ? styles.lyricAdjacent
+                          : styles.lyricInactive
+                      }`}
                     >
-                      {line.text}
-                    </motion.p>
+                      <span 
+                        className={styles.lyricText}
+                        onClick={() => handleLyricClick(line.time)}
+                        title="Click để nhảy tới đây"
+                      >
+                        {line.text}
+                      </span>
+                    </p>
                   );
                 })}
               </div>
@@ -125,8 +135,6 @@ export default function FullscreenOverlay() {
                 ♪ Không tìm thấy lời bài hát
               </div>
             )}
-            <div className={styles.gradientTop} />
-            <div className={styles.gradientBottom} />
           </div>
 
           {/* RIGHT: Album art + controls */}

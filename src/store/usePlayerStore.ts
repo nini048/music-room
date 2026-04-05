@@ -2,6 +2,13 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { toast } from './useToastStore';
 
+import _DEFAULT_SONGS_DATA from './defaultSongs.json';
+
+// Handle both array format and object format (localStorage dump)
+export const DEFAULT_SONGS: Song[] = Array.isArray(_DEFAULT_SONGS_DATA) 
+  ? _DEFAULT_SONGS_DATA as Song[]
+  : (_DEFAULT_SONGS_DATA as any).queue as Song[] || [];
+
 export interface Song {
   id: string;
   title: string;
@@ -9,9 +16,11 @@ export interface Song {
   cover: string;
   thumbnail: string;
   duration: number | string;
+  channel?: string; // YouTube channel name, used as fallback artist in lyrics search
 }
 
 interface PlayerState {
+  defaultSongs: Song[];
   queue: Song[];
   history: Song[];
   currentSong: Song | null;
@@ -38,6 +47,8 @@ interface PlayerState {
   playNext: (song: Song) => void;
   clearQueue: () => void;
   clearHistory: () => void;
+  loadDefaultSongs: () => void;
+  saveQueueAsDefault: () => void;
   setPlaying: (isPlaying: boolean) => void;
   togglePlay: () => void;
   setVolume: (volume: number) => void;
@@ -53,18 +64,8 @@ interface PlayerState {
 export const usePlayerStore = create<PlayerState>()(
   persist(
     (set, get) => ({
-      queue: [
-        {"id":"nd50zEIDK40","title":"J.Tajor - Like I Do (Lyrics)","channel":"Digital Mount","thumbnail":"https://i.ytimg.com/vi/nd50zEIDK40/hq720.jpg","duration":"2:30","artist":"J.Tajor","cover":""},
-        {"id":"ufAOvq7ZNPw","title":"[CHO BẢO] 10. Còn Ai Ngoài Anh Với Em - B Ray - Prod. Darrys","channel":"EvB Records","thumbnail":"https://i.ytimg.com/vi/ufAOvq7ZNPw/hq720.jpg","duration":"4:05","artist":"B Ray","cover":""},
-        {"id":"GF_FPaRCUmE","title":"FLIRT (Feat. Leellamarz)","channel":"Way Ched - Topic","thumbnail":"https://i.ytimg.com/vi/GF_FPaRCUmE/hq720.jpg","duration":"3:02","artist":"Way Ched","cover":""},
-        {"id":"0X9mRWauG0A","title":"มีใจ cũng nói ra - thekantk x NDGX [Official Audio]","channel":"thekantk","thumbnail":"https://i.ytimg.com/vi/0X9mRWauG0A/hq720.jpg","duration":"3:21","artist":"thekantk","cover":""},
-        {"id":"qmids361VG0","title":"喜欢你有什么错吗 - thekantk Feat.RubyTan [Official Audio]","channel":"thekantk","thumbnail":"https://i.ytimg.com/vi/qmids361VG0/hq720.jpg","duration":"3:34","artist":"thekantk","cover":""},
-        {"id":"dMdRepqxFBU","title":"Duniverse - Đại Hải Trình [Lyric]","channel":"Duniverse","thumbnail":"https://i.ytimg.com/vi/dMdRepqxFBU/hq720.jpg","duration":"3:46","artist":"Duniverse","cover":""},
-        {"id":"xxHJTLYxH18","title":"[Vietsub] Kịch Bản Tồi Tệ - LBI Lợi Bỉ | 烂片剧情 - LBI利比","channel":"Moah - Nhạc Trung Channel","thumbnail":"https://i.ytimg.com/vi/xxHJTLYxH18/hq720.jpg","duration":"3:26","artist":"LBI","cover":""},
-        {"id":"qBsiWmEdj0c","title":"Obito - Sài Gòn ơi","channel":"Obito Official","thumbnail":"https://i.ytimg.com/vi/qBsiWmEdj0c/hq720.jpg","duration":"3:09","artist":"Obito","cover":""},
-        {"id":"1p2xVwDfbHg","title":"【HOT TIK TOK】【VIETSUB COVER】LOVER BOY 88 - CLAM KHƯƠNG BẰNG X NGẬN MĨ VỊ | CALM 姜鵬 X 很美味","channel":"HOT TIK TOK ","thumbnail":"https://i.ytimg.com/vi/1p2xVwDfbHg/hq720.jpg","duration":"3:08","artist":"Calm","cover":""},
-        {"id":"aF1tJEPWjIM","title":"Obito - Xuất Phát Điểm","channel":"Obito Official","thumbnail":"https://i.ytimg.com/vi/aF1tJEPWjIM/hq720.jpg","duration":"3:10","artist":"Obito","cover":""}
-      ],
+      defaultSongs: DEFAULT_SONGS,
+      queue: DEFAULT_SONGS,
       history: [],
       currentSong: { "id": "XKZQ3wlS9aI", "title": "ENHYPEN (엔하이픈) 'No Doubt' (Color Coded Lyrics)", "channel": "Jaeguchi", "thumbnail": "https://i.ytimg.com/vi/XKZQ3wlS9aI/hq720.jpg", "duration": "2:46", "artist": "ENHYPEN", "cover": "" },
       isPlaying: false,
@@ -127,6 +128,36 @@ export const usePlayerStore = create<PlayerState>()(
 
       clearQueue: () => set({ queue: [] }),
       clearHistory: () => set({ history: [] }),
+
+      loadDefaultSongs: () => {
+        const { queue, currentSong, defaultSongs } = get();
+        // Merge the master json file with whatever was saved in local storage
+        const mergedDefaults = [...DEFAULT_SONGS, ...defaultSongs];
+        const uniqueSource = Array.from(new Map(mergedDefaults.map(item => [item.id, item])).values());
+        
+        const existingIds = new Set([...queue.map(s => s.id), currentSong?.id].filter(Boolean));
+        const toAdd = uniqueSource.filter(s => !existingIds.has(s.id));
+        
+        if (toAdd.length === 0) {
+          toast.info('Tất cả bài mặc định đã có trong hàng chờ');
+          return;
+        }
+        set({ queue: [...queue, ...toAdd] });
+        toast.success(`Đã thêm ${toAdd.length} bài vào hàng chờ`);
+      },
+
+      saveQueueAsDefault: () => {
+        const { queue, currentSong } = get();
+        const fullList = currentSong ? [currentSong, ...queue] : queue;
+        if (fullList.length === 0) {
+          toast.warning('Danh sách trống, không thể lưu');
+          return;
+        }
+        // Ensure no duplicates just in case
+        const unique = Array.from(new Map(fullList.map(item => [item.id, item])).values());
+        set({ defaultSongs: unique });
+        toast.success(`Đã lưu ${unique.length} bài hát làm mặc định`);
+      },
 
       setPlaying: (isPlaying) => set({ isPlaying }),
       togglePlay: () => set((s) => ({ isPlaying: !s.isPlaying })),
@@ -197,6 +228,7 @@ export const usePlayerStore = create<PlayerState>()(
       name: 'music-room-player',
       // Không persist isFullscreen, currentTime, isPlaying
       partialize: (state) => ({
+        defaultSongs: state.defaultSongs,
         queue: state.queue,
         history: state.history,
         currentSong: state.currentSong,

@@ -279,6 +279,7 @@
   height: 3px;
   border-radius: var(--radius-full);
   -webkit-appearance: none;
+  appearance: none;
   background: rgba(255,255,255,0.1);
   accent-color: white;
   cursor: pointer;
@@ -287,4 +288,109 @@
 
 .volumeInput:hover {
   accent-color: #e4e4e7;
+}
+
+/* ─── Device Picker ──────────────────────────────────────────────────────────── */
+.deviceWrapper {
+  position: relative;
+}
+
+.deviceMenu {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: var(--space-4);
+  border-radius: var(--radius-xl);
+  background: rgba(24, 24, 27, 0.95);
+  padding: var(--space-3);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  z-index: 50;
+  min-width: 220px;
+  border: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  animation: fadeIn 0.2s ease;
+}
+
+.deviceMenuTitle {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--space-3);
+  text-align: center;
+}
+
+.deviceList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 8px;
+}
+
+.deviceItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.deviceItem:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+.deviceItemActive {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.deviceItemLabel {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.deviceItemDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.deviceItemActive .deviceItemDot {
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+.deviceItemCheck {
+  color: #10b981;
+  font-weight: bold;
+}
+
+.deviceLoading {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 12px 0;
+}
+
+.deviceNote {
+  font-size: 10px;
+  color: var(--text-muted);
+  opacity: 0.6;
+  text-align: center;
+  line-height: 1.4;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 8px;
 }

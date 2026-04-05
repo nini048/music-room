@@ -16,9 +16,9 @@ export default function Sidebar() {
 
   const tabs: { id: Tab; label: string; count?: number }[] = [
     { id: 'queue', label: 'Up Next', count: queue.length },
-    { id: 'playlist', label: 'Playlists' },
     { id: 'history', label: 'History', count: history.length },
     { id: 'lyrics', label: 'Lyrics' },
+    { id: 'playlist', label: 'Playlists' },
   ];
 
   return (
@@ -51,7 +51,7 @@ export default function Sidebar() {
       </div>
 
       {/* Tab Content */}
-      <div className={`custom-scrollbar ${styles.tabContent}`}>
+      <div className={`${activeTab === 'lyrics' ? 'scrollbar-hide' : 'custom-scrollbar'} ${styles.tabContent}`}>
         {activeTab === 'queue' && <QueueTab />}
         {activeTab === 'lyrics' && <LyricsTab />}
         {activeTab === 'playlist' && <PlaylistTab />}
