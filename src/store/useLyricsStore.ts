@@ -170,11 +170,18 @@ async function fetchLyricsForSong(
     // ── TIER 1: Exact artist+title (highest confidence) ──────────────────────
     if (artistField) {
       if (splitAggressive.length >= 2) {
+        // Test both halves since we don't know if it's "Artist - Title" or "Title - Artist"
+        candidates.push({ a: artistField, t: splitAggressive[0] });
         candidates.push({ a: artistField, t: splitAggressive[1] });
         candidates.push({ a: artistField, t: splitAggressive[splitAggressive.length - 1] });
       }
       candidates.push({ a: artistField, t: aggressiveCleaned });
       candidates.push({ a: artistField, t: coreCleaned });
+      
+      // Also test without ellipsis just in case
+      if (splitAggressive[0]?.includes('…')) {
+        candidates.push({ a: artistField, t: splitAggressive[0].replace(/…/g, '').trim() });
+      }
     }
 
     // ── TIER 2: Dash-split both ways ─────────────────────────────────────────

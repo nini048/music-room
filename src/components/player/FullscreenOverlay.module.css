@@ -150,8 +150,8 @@
   scrollbar-width: none;
   -ms-overflow-style: none;
   /* Soft fade top and bottom without adding any solid color box */
-  mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 25%, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 100%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 25%, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 100%);
 }
 
 .lyricsArea::-webkit-scrollbar {
@@ -192,12 +192,11 @@
   font-size: 34px;
   color: white;
   z-index: 10;
-  text-shadow:
-    0 0 30px rgba(255, 255, 255, 0.9),
-    0 0 60px rgba(255, 255, 255, 0.4),
-    0 0 100px rgba(255, 255, 255, 0.15);
+  /* Use filter: drop-shadow to avoid transparent block rendering glitch in WebKit/Safari */
+  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 30px rgba(255, 255, 255, 0.3));
   opacity: 1;
-  transform: scale(1);
+  transform: scale(1) translateZ(0);
+  will-change: transform, filter;
 }
 
 @media (min-width: 1280px) {
