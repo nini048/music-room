@@ -101,29 +101,29 @@ export const usePlayerStore = create<PlayerState>()(
       addToQueue: (song) => {
         const { queue, currentSong } = get();
         if (currentSong?.id === song.id) {
-          toast.warning(`"${song.title}" đang được phát`);
+          toast.warning(`"${song.title}" đang được phát`, { thumbnail: song.thumbnail || song.cover });
           return;
         }
         if (queue.some((s) => s.id === song.id)) {
-          toast.warning(`"${song.title}" đã có trong hàng chờ`);
+          toast.warning(`"${song.title}" đã có trong hàng chờ`, { thumbnail: song.thumbnail || song.cover });
           return;
         }
         set({ queue: [...queue, song] });
-        toast.success(`Đã thêm "${song.title}" vào hàng chờ`);
+        toast.success(`Đã thêm vào hàng chờ`, { thumbnail: song.thumbnail || song.cover });
       },
 
       removeFromQueue: (songId) => {
         const { queue } = get();
         const song = queue.find((s) => s.id === songId);
         set({ queue: queue.filter((s) => s.id !== songId) });
-        if (song) toast.info(`Đã xóa "${song.title}"`);
+        if (song) toast.info(`Đã xóa "${song.title}"`, { thumbnail: song.thumbnail || song.cover });
       },
 
       playNext: (song) => {
         const { queue } = get();
         const filtered = queue.filter((s) => s.id !== song.id);
         set({ queue: [song, ...filtered] });
-        toast.success(`"${song.title}" sẽ phát tiếp theo`);
+        toast.success(`Phát tiếp theo: "${song.title}"`, { thumbnail: song.thumbnail || song.cover });
       },
 
       clearQueue: () => set({ queue: [] }),

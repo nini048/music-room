@@ -177,23 +177,22 @@
 .lyricText {
   display: inline-block;
   cursor: pointer;
-  border-radius: 16px;
-  padding: 8px 14px;
-  margin-left: -14px; /* offset padding to maintain left alignment */
+  border-radius: 10px;
+  padding: 4px 10px;
+  margin-left: -10px; /* offset padding to maintain left alignment */
   transition: background-color 0.2s ease;
 }
 
 .lyricText:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.04);
 }
 
-/* Active line — brightest with strong glow */
+/* Active line — bright, clean glow (no visible block) */
 .lyricActive {
-  font-size: 34px;
+  font-size: 30px;
   color: white;
   z-index: 10;
-  /* Use filter: drop-shadow to avoid transparent block rendering glitch in WebKit/Safari */
-  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 30px rgba(255, 255, 255, 0.3));
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
   opacity: 1;
   transform: scale(1) translateZ(0);
   will-change: transform, filter;
@@ -201,21 +200,21 @@
 
 @media (min-width: 1280px) {
   .lyricActive {
-    font-size: 44px;
+    font-size: 38px;
   }
 }
 
 /* Adjacent lines (i±1) — semi-bright */
 .lyricAdjacent {
-  font-size: 26px;
-  color: rgba(255, 255, 255, 0.55);
+  font-size: 22px;
+  color: rgba(255, 255, 255, 0.45);
   opacity: 1;
   transform: scale(0.97);
 }
 
 @media (min-width: 1280px) {
   .lyricAdjacent {
-    font-size: 32px;
+    font-size: 27px;
   }
 }
 
@@ -225,15 +224,15 @@
 
 /* All other lines — very dim */
 .lyricInactive {
-  font-size: 22px;
-  color: rgba(255, 255, 255, 0.12);
+  font-size: 19px;
+  color: rgba(255, 255, 255, 0.1);
   opacity: 1;
-  transform: scale(0.93);
+  transform: scale(0.94);
 }
 
 @media (min-width: 1280px) {
   .lyricInactive {
-    font-size: 28px;
+    font-size: 23px;
   }
 }
 

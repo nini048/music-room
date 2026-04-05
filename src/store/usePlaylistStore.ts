@@ -50,7 +50,7 @@ export const usePlaylistStore = create<PlaylistState>()(
         const pl = get().playlists.find((p) => p.id === playlistId);
         if (!pl) return;
         if (pl.songs.some((s) => s.id === song.id)) {
-          toast.warning(`"${song.title}" đã có trong playlist này`);
+          toast.warning(`Đã có trong playlist này`, { thumbnail: song.thumbnail || song.cover });
           return;
         }
         set((s) => ({
@@ -58,7 +58,7 @@ export const usePlaylistStore = create<PlaylistState>()(
             p.id === playlistId ? { ...p, songs: [...p.songs, song] } : p
           ),
         }));
-        toast.success(`Đã thêm vào playlist "${pl.name}"`);
+        toast.success(`Đã thêm vào "${pl.name}"`, { thumbnail: song.thumbnail || song.cover });
       },
 
       removeSongFromPlaylist: (playlistId, songId) => {

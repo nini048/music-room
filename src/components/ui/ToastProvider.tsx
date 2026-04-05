@@ -3,46 +3,54 @@
 import { useToastStore } from '@/store/useToastStore';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, CheckCircle2, AlertTriangle, XCircle, Info } from 'lucide-react';
+import styles from './ToastProvider.module.css';
 
 const iconMap = {
-  success: <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />,
-  warning: <AlertTriangle size={16} className="text-amber-400 shrink-0" />,
-  error: <XCircle size={16} className="text-rose-400 shrink-0" />,
-  info: <Info size={16} className="text-sky-400 shrink-0" />,
-};
-
-const colorMap = {
-  success: 'border-emerald-500/30 bg-emerald-500/10',
-  warning: 'border-amber-500/30 bg-amber-500/10',
-  error: 'border-rose-500/30 bg-rose-500/10',
-  info: 'border-sky-500/30 bg-sky-500/10',
+  success: <CheckCircle2 size={15} />,
+  warning: <AlertTriangle size={15} />,
+  error:   <XCircle size={15} />,
+  info:    <Info size={15} />,
 };
 
 export default function ToastProvider() {
   const { toasts, removeToast } = useToastStore();
 
   return (
-    <div className="fixed bottom-6 right-4 z-[9999] flex flex-col gap-2 pointer-events-none max-w-[340px] w-full">
+    <div className={styles.toastContainer}>
       <AnimatePresence mode="popLayout">
         {toasts.map((t) => (
           <motion.div
             key={t.id}
             layout
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, x: 80, scale: 0.95 }}
-            transition={{ duration: 0.22, ease: 'easeOut' }}
-            className={`pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-2xl border backdrop-blur-xl shadow-2xl ${colorMap[t.type]}`}
-            style={{ background: 'rgba(10,10,10,0.85)' }}
+            initial={{ opacity: 0, x: 60, scale: 0.92 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 60, scale: 0.92 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className={`${styles.toast} ${styles[t.type]}`}
           >
-            {iconMap[t.type]}
-            <p className="flex-1 text-sm text-white/90 leading-snug">{t.message}</p>
-            <button
-              onClick={() => removeToast(t.id)}
-              className="text-white/30 hover:text-white/70 transition-colors mt-0.5"
-            >
-              <X size={14} />
-            </button>
+            {/* Thumbnail */}
+            {t.thumbnail && (
+              <img
+                src={t.thumbnail}
+                alt=""
+                className={styles.thumbnail}
+              />
+            )}
+
+            {/* Body: icon + message + close */}
+            <div className={styles.body}>
+              <span className={`${styles.iconWrapper} ${styles.icon} ${styles[t.type]}`}>
+                {iconMap[t.type]}
+              </span>
+              <p className={styles.message}>{t.message}</p>
+              <button
+                onClick={() => removeToast(t.id)}
+                className={styles.closeBtn}
+                aria-label="Đóng thông báo"
+              >
+                <X size={13} />
+              </button>
+            </div>
           </motion.div>
         ))}
       </AnimatePresence>

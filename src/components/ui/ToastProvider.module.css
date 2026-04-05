@@ -1,0 +1,96 @@
+.toastContainer {
+  position: fixed;
+  top: 80px; /* below mini player at top */
+  right: 16px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+  width: 320px;
+}
+
+/* ─── Toast card ─────────────────────────────────────────────────────────── */
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  background: rgba(14, 12, 20, 0.92);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+/* colour accent strip on the left */
+.toast::before {
+  content: '';
+  flex-shrink: 0;
+  width: 3px;
+  align-self: stretch;
+}
+.toast.success::before { background: #34d399; }
+.toast.warning::before { background: #fbbf24; }
+.toast.error::before   { background: #f87171; }
+.toast.info::before    { background: #38bdf8; }
+
+/* ─── Thumbnail (when present) ──────────────────────────────────────────── */
+.thumbnail {
+  width: 52px;
+  height: 52px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border-radius: 10px;
+  margin: 8px 0 8px 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+/* ─── Body ───────────────────────────────────────────────────────────────── */
+.body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 10px 11px;
+  min-width: 0;
+}
+
+.iconWrapper {
+  flex-shrink: 0;
+}
+.icon.success { color: #34d399; }
+.icon.warning { color: #fbbf24; }
+.icon.error   { color: #f87171; }
+.icon.info    { color: #38bdf8; }
+
+.message {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  min-width: 0;
+  /* clamp to 2 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.closeBtn {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.22);
+  transition: color 0.15s ease, background 0.15s ease;
+  padding: 6px;
+  border-radius: 8px;
+  margin-right: 4px;
+}
+
+.closeBtn:hover {
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.06);
+}

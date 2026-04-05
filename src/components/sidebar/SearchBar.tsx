@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Search, Loader2, Play, Plus, SkipForward, ListMusic, X, Music } from 'lucide-react';
 import { usePlayerStore, Song } from '@/store/usePlayerStore';
 import { usePlaylistStore, Playlist } from '@/store/usePlaylistStore';
+import { toast } from '@/store/useToastStore';
 import styles from './SearchBar.module.css';
 
 export default function SearchBar() {
@@ -73,6 +74,7 @@ export default function SearchBar() {
 
   const handlePlayNow = (song: Song) => {
     setCurrentSong(song);
+    toast.success(`▶ Đang phát "${song.title}"`, { thumbnail: song.thumbnail || song.cover });
     // Removed clearSearch() to keep results visible as requested
   };
 

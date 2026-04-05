@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { usePlaylistStore, Playlist } from '@/store/usePlaylistStore';
 import { usePlayerStore, Song } from '@/store/usePlayerStore';
 import { Trash2, Play, Plus, ListMusic, ChevronLeft, GripVertical } from 'lucide-react';
+import { toast } from '@/store/useToastStore';
 import styles from './Tabs.module.css';
 
 export default function PlaylistTab() {
@@ -76,6 +77,7 @@ export default function PlaylistTab() {
             if (activePlaylist.songs.length > 0) {
               setCurrentSong(activePlaylist.songs[0]);
               activePlaylist.songs.slice(1).forEach(s => addToQueue(s));
+              toast.success(`▶ Phát playlist "${activePlaylist.name}"`);
             }
           }} 
           style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', background: 'white', color: 'black', padding: '6px 12px', borderRadius: '16px', fontWeight: 600 }}

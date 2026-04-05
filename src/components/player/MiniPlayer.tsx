@@ -12,8 +12,17 @@ interface MiniPlayerProps {
 }
 
 export default function MiniPlayer({ controlsRef }: MiniPlayerProps) {
-  const { currentSong, isPlaying, togglePlay, next, previous, volume, setVolume } = usePlayerStore();
+  const { currentSong, isPlaying, togglePlay, next, previous, volume, setVolume, currentTime } = usePlayerStore();
   const [visible, setVisible] = useState(false);
+
+  // Calculate progress percentage
+  const durationSecs = currentSong?.duration
+    ? typeof currentSong.duration === 'number'
+      ? currentSong.duration
+      : currentSong.duration.split(':').reduce((acc: number, t: string, i: number, arr: string[]) =>
+          i === arr.length - 2 ? acc + +t * 60 : i === arr.length - 1 ? acc + +t : acc + +t * 3600, 0)
+    : 0;
+  const progressPct = durationSecs > 0 ? Math.min(100, (currentTime / durationSecs) * 100) : 0;
 
   useEffect(() => {
     if (!controlsRef.current) return;
@@ -42,6 +51,12 @@ export default function MiniPlayer({ controlsRef }: MiniPlayerProps) {
         >
           <div className={styles.maxContainer}>
             <div className={styles.miniPlayerBox}>
+              {/* Progress bar thinline */}
+              <div
+                className={styles.progressBar}
+                style={{ width: `${progressPct}%` }}
+              />
+
               {/* Thumbnail */}
               <img
                 src={currentSong.thumbnail || currentSong.cover}
@@ -83,7 +98,7 @@ export default function MiniPlayer({ controlsRef }: MiniPlayerProps) {
 
               {/* Scroll up btn */}
               <button onClick={scrollToPlayer} className={styles.scrollUpBtn} title="Lên player chính">
-                <ChevronDown size={16} />
+                <ChevronDown size={15} />
               </button>
             </div>
           </div>

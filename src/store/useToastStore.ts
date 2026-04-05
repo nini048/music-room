@@ -6,6 +6,7 @@ export interface Toast {
   id: string;
   type: ToastType;
   message: string;
+  thumbnail?: string;
   duration?: number;
 }
 
@@ -34,8 +35,8 @@ export const useToastStore = create<ToastState>((set, get) => ({
 
 // Convenience helpers
 export const toast = {
-  success: (message: string, opts?: { duration?: number }) => useToastStore.getState().addToast({ type: 'success', message, ...opts }),
-  warning: (message: string, opts?: { duration?: number }) => useToastStore.getState().addToast({ type: 'warning', message, ...opts }),
-  error: (message: string, opts?: { duration?: number }) => useToastStore.getState().addToast({ type: 'error', message, ...opts }),
-  info: (message: string, opts?: { duration?: number }) => useToastStore.getState().addToast({ type: 'info', message, ...opts }),
+  success: (message: string, opts?: { duration?: number; thumbnail?: string }) => useToastStore.getState().addToast({ type: 'success', message, ...opts }),
+  warning: (message: string, opts?: { duration?: number; thumbnail?: string }) => useToastStore.getState().addToast({ type: 'warning', message, ...opts }),
+  error:   (message: string, opts?: { duration?: number; thumbnail?: string }) => useToastStore.getState().addToast({ type: 'error',   message, ...opts }),
+  info:    (message: string, opts?: { duration?: number; thumbnail?: string }) => useToastStore.getState().addToast({ type: 'info',    message, ...opts }),
 };

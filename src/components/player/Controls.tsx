@@ -6,7 +6,6 @@ import {
 } from 'lucide-react';
 import { usePlayerStore } from '@/store/usePlayerStore';
 import { useState, useRef, useEffect, useCallback } from 'react';
-import ProgressBar from './ProgressBar';
 import styles from './Controls.module.css';
 
 export default function Controls() {
@@ -43,12 +42,7 @@ export default function Controls() {
   return (
     <div className={styles.controlsWrapper}>
       
-      {/* 1. Ultra Minimal Progress Bar */}
-      <div className={styles.progressBarArea}>
-        <ProgressBar />
-      </div>
-
-      {/* 2. Playback Controls Flow */}
+      {/* Playback Controls Flow */}
       <div className={styles.playbackFlow}>
         {/* Left Space (Empty for symmetry) */}
         <div className={styles.leftSpace} />
